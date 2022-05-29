@@ -2,6 +2,7 @@ from typing import List, Set, Tuple
 import scapy.all as sca
 import dpkt
 import os
+import pyshark
 
 '''
 sniff(count=0,
@@ -31,6 +32,13 @@ IP:proto, src, dst
 '''
 
 base_dir = os.path.dirname(os.path.realpath(__file__))
+
+def read_pcap(file_path: str):
+    pkts = pyshark.FileCapture(file_path, display_filter='cdp')
+    for pkt in pkts:
+        print(pkt.cdp)
+        print(pkt.eth)
+
     
 def pkt_handler(file_path: str, protocols: Set[str]={'ah', 'tcp', 'udp'}) -> Set[Tuple[str, str]]:
     '''
@@ -91,7 +99,7 @@ def topo_from_flow(flows_dir: str) -> List[Tuple[str, str]]:
     flow_paths = os.listdir(root_dir)
     for flow_path in flow_paths:
         file_path = os.path.join(root_dir, flow_path)
-        links_set = links_set.union(pkt_handler(file_path))
+        links_set = links_set.union(read_pcap(file_path))
     # 2.将可能是同一节点的链路进行合并
     return link_merge(links_set)
 
